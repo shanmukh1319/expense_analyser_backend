@@ -9,26 +9,31 @@ import { CodeGenerator } from 'src/helper/code-generator';
 
 @Injectable()
 export class CategoryService {
+
   code_generator_object:CodeGenerator= new CodeGenerator()
+
   constructor(@InjectModel(Category.name) private categoryModel: Model<Category>) { }
+
   async create(createCategoryDto: CreateCategoryDto) {
-    let code = this.code_generator_object.getCode("CAT")
-    // let is_code_taken=this.categoryModel.find({
-    //   where: {
-    //     code: codegi
-    //   },
-    // })
-      createCategoryDto['code']=code
-      const createdCategory = new this.categoryModel(createCategoryDto)
-      return createdCategory.save();
+    let generated_code=""
+    while(true){
+      generated_code = this.code_generator_object.getCode("CAT")
+      let is_code_taken=await this.categoryModel.findOne({code:generated_code})
+      if(!is_code_taken){
+        break
+      }
+    }
+    createCategoryDto['code']=generated_code
+    const createdCategory = new this.categoryModel(createCategoryDto)
+    return createdCategory.save();
   }
 
   findAll() {
     return this.categoryModel.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} category`;
+  findOne(code: string) {
+    return this.categoryModel.findOne({code:code});
   }
 
   update(id: number, updateCategoryDto: UpdateCategoryDto) {
